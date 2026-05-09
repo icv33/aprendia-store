@@ -1,0 +1,19 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "npx prisma generate && next build",
+  "installCommand": "npm install",
+  "env": {
+    "DATABASE_URL": "@database_url",
+    "STRIPE_SECRET_KEY": "@stripe_secret_key",
+    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY": "@stripe_publishable_key",
+    "STRIPE_WEBHOOK_SECRET": "@stripe_webhook_secret",
+    "SMTP_HOST": "@smtp_host",
+    "SMTP_PORT": "@smtp_port",
+    "SMTP_USER": "@smtp_user",
+    "SMTP_PASS": "@smtp_pass",
+    "NEXT_PUBLIC_URL": "@next_public_url",
+    "ADMIN_PASSWORD": "@admin_password",
+    "NEXT_PUBLIC_ADMIN_PW": "@next_public_admin_pw",
+    "NEXTAUTH_SECRET": "@nextauth_secret"
+  }
+}
