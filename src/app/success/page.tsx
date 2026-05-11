@@ -28,7 +28,7 @@ function SuccessContent() {
         Si tienes algún problema, escríbenos a{" "}
         <a href="mailto:aprendia.store@gmail.com" style={{ color: "var(--accent)" }}>aprendia.store@gmail.com</a>
       </p>
-      <Link href="/" className="btn">Volver a la editorial</Link>
+      <Link href="/" className="btn">Volver al menú</Link>
     </div>
   );
 }

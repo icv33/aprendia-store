@@ -69,7 +69,7 @@ export default function CartClient() {
               <span>{subtotal.toFixed(2)}€</span>
             </div>
             <button className="btn btn-accent btn-block" onClick={() => router.push("/checkout")}>
-              Pagar con Stripe
+              Pagar
             </button>
             <div className="caption" style={{ marginTop: 16, textAlign: "center" }}>Encriptación bancaria · Acceso inmediato tras el pago</div>
           </div>
