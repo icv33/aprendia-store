@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
         console.error("[webhook] DB unavailable, sending email without DB tokens:", dbErr);
         const crypto = await import("crypto");
         for (const ebookId of itemIds) {
-          const book = BOOKS.find((b) => b.id === ebookId || b.slug === ebookId);
+          const book = BOOKS.find((b) => b.id === ebookId);
           downloads.push({
             title: book?.title || ebookId,
             token: crypto.randomUUID(),
