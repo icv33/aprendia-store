@@ -3,6 +3,7 @@ import "./globals.css";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import Toast from "@/components/Toast";
+import CartHydration from "@/components/CartHydration";
 
 export const metadata: Metadata = {
   title: "aprendia · Una editorial digital independiente",
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </main>
         <Footer />
         <Toast />
+        <CartHydration />
       </body>
     </html>
   );

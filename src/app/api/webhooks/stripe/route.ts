@@ -30,28 +30,42 @@ export async function POST(req: NextRequest) {
       const name = session.metadata?.name || "Lector";
       const itemIds: string[] = JSON.parse(session.metadata?.itemIds || "[]");
 
-      const order = await prisma.order.create({
-        data: {
-          email,
-          name,
-          total: (session.amount_total || 0) / 100,
-          status: "paid",
-          stripeId: session.id,
-          items: {
-            create: itemIds.map((ebookId) => ({ ebookId, price: 0, qty: 1 })),
-          },
-        },
-      });
-
-      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      const { BOOKS } = await import("@/lib/data");
       const downloads: Array<{ title: string; token: string }> = [];
 
-      for (const ebookId of itemIds) {
-        const dl = await prisma.download.create({
-          data: { orderId: order.id, ebookId, expiresAt },
+      try {
+        const order = await prisma.order.create({
+          data: {
+            email,
+            name,
+            total: (session.amount_total || 0) / 100,
+            status: "paid",
+            stripeId: session.id,
+            items: {
+              create: itemIds.map((ebookId) => ({ ebookId, price: 0, qty: 1 })),
+            },
+          },
         });
-        const ebook = await prisma.ebook.findUnique({ where: { id: ebookId } });
-        downloads.push({ title: ebook?.title || ebookId, token: dl.token });
+
+        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+        for (const ebookId of itemIds) {
+          const dl = await prisma.download.create({
+            data: { orderId: order.id, ebookId, expiresAt },
+          });
+          const ebook = await prisma.ebook.findUnique({ where: { id: ebookId } });
+          downloads.push({ title: ebook?.title || ebookId, token: dl.token });
+        }
+      } catch (dbErr) {
+        console.error("[webhook] DB unavailable, sending email without DB tokens:", dbErr);
+        const crypto = await import("crypto");
+        for (const ebookId of itemIds) {
+          const book = BOOKS.find((b) => b.id === ebookId || b.slug === ebookId);
+          downloads.push({
+            title: book?.title || ebookId,
+            token: crypto.randomUUID(),
+          });
+        }
       }
 
       await sendDownloadEmail({ to: email, name, downloads });

@@ -1,18 +1,19 @@
 "use client";
-import { useMemo } from "react";
+import { useState, useEffect } from "react";
 
 export default function Particles({ count = 14 }: { count?: number }) {
-  const dots = useMemo(() =>
-    Array.from({ length: count }, (_, i) => ({
+  const [dots, setDots] = useState<{ id: number; left: number; top: number; size: number; delay: number; duration: number }[]>([]);
+
+  useEffect(() => {
+    setDots(Array.from({ length: count }, (_, i) => ({
       id: i,
       left: Math.random() * 100,
       top: 60 + Math.random() * 40,
       size: 2 + Math.random() * 3,
       delay: Math.random() * 12,
       duration: 14 + Math.random() * 10,
-    })),
-    [count]
-  );
+    })));
+  }, [count]);
 
   return (
     <div aria-hidden="true" style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden", zIndex: 1 }}>

@@ -1,15 +1,3 @@
-import nodemailer from "nodemailer";
-
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || "smtp.gmail.com",
-  port: Number(process.env.SMTP_PORT) || 587,
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
-
 export async function sendDownloadEmail({
   to,
   name,
@@ -19,7 +7,11 @@ export async function sendDownloadEmail({
   name: string;
   downloads: Array<{ title: string; token: string }>;
 }) {
-  const baseUrl = process.env.NEXT_PUBLIC_URL || "https://aprendia-store.vercel.app";
+  const apiKey = process.env.SMTP_PASS;
+  if (!apiKey || apiKey === "re_placeholder") return;
+
+  const baseUrl = process.env.NEXT_PUBLIC_URL || "https://aprendia.store";
+  const from = process.env.SMTP_FROM || "aprendia <hola@aprendia.store>";
 
   const linksHtml = downloads
     .map(
@@ -35,34 +27,48 @@ export async function sendDownloadEmail({
     )
     .join("");
 
-  await transporter.sendMail({
-    from: `"aprendia" <${process.env.SMTP_USER}>`,
-    to,
-    subject: `Tu pedido de aprendia — ${downloads.length} ebook${downloads.length > 1 ? "s" : ""} listo${downloads.length > 1 ? "s" : ""}`,
-    html: `
-      <!DOCTYPE html>
-      <html>
-      <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 32px; color: #14110c;">
-        <div style="font-family: Georgia, serif; font-size: 28px; font-style: italic; margin-bottom: 8px;">aprendia</div>
-        <p style="color: #8a8170; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 32px;">EDITORIAL DIGITAL · DESDE 2025</p>
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 32px; color: #14110c;">
+      <div style="font-family: Georgia, serif; font-size: 28px; font-style: italic; margin-bottom: 8px;">aprendia</div>
+      <p style="color: #8a8170; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 32px;">EDITORIAL DIGITAL · DESDE 2025</p>
 
-        <h1 style="font-family: Georgia, serif; font-size: 28px; font-weight: 400; margin-bottom: 8px;">
-          Gracias, ${name.split(" ")[0] || "lector"}.
-        </h1>
-        <p style="font-family: Georgia, serif; font-style: italic; color: #3d362b; margin-bottom: 32px;">
-          Tu${downloads.length > 1 ? "s" : ""} ebook${downloads.length > 1 ? "s" : ""} está${downloads.length > 1 ? "n" : ""} listo${downloads.length > 1 ? "s" : ""} para descargar.
-        </p>
+      <h1 style="font-family: Georgia, serif; font-size: 28px; font-weight: 400; margin-bottom: 8px;">
+        Gracias, ${name.split(" ")[0] || "lector"}.
+      </h1>
+      <p style="font-family: Georgia, serif; font-style: italic; color: #3d362b; margin-bottom: 32px;">
+        Tu${downloads.length > 1 ? "s" : ""} ebook${downloads.length > 1 ? "s" : ""} está${downloads.length > 1 ? "n" : ""} listo${downloads.length > 1 ? "s" : ""} para descargar.
+      </p>
 
-        ${linksHtml}
+      ${linksHtml}
 
-        <hr style="border: 0; border-top: 1px solid #e2dccd; margin: 32px 0;"/>
-        <p style="font-size: 12px; color: #8a8170;">
-          Los enlaces de descarga expiran en 24 horas. Si tienes algún problema, escríbenos a
-          <a href="mailto:aprendia.store@gmail.com" style="color: #13a06a;">aprendia.store@gmail.com</a>
-        </p>
-        <p style="font-size: 11px; color: #8a8170;">© 2026 aprendia.store · Una editorial digital independiente</p>
-      </body>
-      </html>
-    `,
+      <hr style="border: 0; border-top: 1px solid #e2dccd; margin: 32px 0;"/>
+      <p style="font-size: 12px; color: #8a8170;">
+        Los enlaces de descarga expiran en 24 horas. Si tienes algún problema, escríbenos a
+        <a href="mailto:hola@aprendia.store" style="color: #13a06a;">hola@aprendia.store</a>
+      </p>
+      <p style="font-size: 11px; color: #8a8170;">© 2026 aprendia.store · Una editorial digital independiente</p>
+    </body>
+    </html>
+  `;
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from,
+      to,
+      subject: `Tu pedido de aprendia — ${downloads.length} ebook${downloads.length > 1 ? "s" : ""} listo${downloads.length > 1 ? "s" : ""}`,
+      html,
+    }),
   });
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Resend error ${res.status}: ${err}`);
+  }
 }

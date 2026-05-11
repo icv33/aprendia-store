@@ -29,12 +29,14 @@ const links = [
 export default function Nav() {
   const pathname = usePathname();
   const cartCount = useCartStore((s) => s.count());
+  const [mounted, setMounted] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const onScroll = () => setScrolled(window.scrollY > 8);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
@@ -78,7 +80,7 @@ export default function Nav() {
             <button onClick={() => setCartOpen(true)} aria-label="Abrir carrito"
               style={{ position: "relative", background: "transparent", border: 0, padding: 0, display: "grid", placeItems: "center", width: 40, height: 44 }}>
               <BookCartIcon />
-              {cartCount > 0 && (
+              {mounted && cartCount > 0 && (
                 <span style={{
                   position: "absolute", top: -4, right: -4,
                   background: "var(--accent)", color: "#fff",

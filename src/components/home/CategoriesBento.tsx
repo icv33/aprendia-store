@@ -85,7 +85,7 @@ export default function CategoriesBento() {
         </div>
       </div>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @media (max-width: 820px) {
           .bento-grid {
             grid-template-columns: 1fr 1fr !important;
@@ -94,7 +94,7 @@ export default function CategoriesBento() {
           .bento-grid > *:first-child { grid-column: 1 / 3 !important; grid-row: 1 / 2 !important; }
           .bento-grid > *:nth-child(7) { grid-column: 1 / 3 !important; }
         }
-      `}</style>
+      ` }} />
     </section>
   );
 }

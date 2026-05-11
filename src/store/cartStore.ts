@@ -34,6 +34,6 @@ export const useCartStore = create<CartStore>()(
       total: () => get().items.reduce((s, it) => s + it.price * it.qty, 0),
       count: () => get().items.reduce((s, it) => s + it.qty, 0),
     }),
-    { name: "aprendia-cart" }
+    { name: "aprendia-cart", skipHydration: true }
   )
 );
