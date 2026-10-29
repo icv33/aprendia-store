@@ -1,6 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const pw = process.env.ADMIN_PASSWORD;
+  if (!pw || req.headers.get("x-admin-password") !== pw) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+
   if (!process.env.DATABASE_URL || process.env.DATABASE_URL.includes("placeholder")) {
     return NextResponse.json([]);
   }

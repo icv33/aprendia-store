@@ -17,22 +17,20 @@ export default function AdminClient() {
   const [books, setBooks] = useState<EbookRow[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const login = () => {
-    if (pw === process.env.NEXT_PUBLIC_ADMIN_PW || pw === "aprendia2025admin") {
-      setAuthed(true);
-      loadBooks();
-    } else {
-      setError("Contraseña incorrecta");
-    }
-  };
-
-  const loadBooks = async () => {
+  // La contraseña se comprueba en el servidor (ADMIN_PASSWORD), nunca en el navegador.
+  const login = async () => {
     setLoading(true);
+    setError("");
     try {
-      const res = await fetch("/api/admin/ebooks");
+      const res = await fetch("/api/admin/ebooks", { headers: { "x-admin-password": pw } });
+      if (res.status === 401) {
+        setError("Contraseña incorrecta");
+        return;
+      }
+      setAuthed(true);
       if (res.ok) setBooks(await res.json());
     } catch {
-      // ignore — DB might not be set up yet
+      setError("No se ha podido conectar");
     } finally {
       setLoading(false);
     }
@@ -55,7 +53,7 @@ export default function AdminClient() {
           style={{ marginBottom: 12 }}
         />
         {error && <div style={{ color: "#c53030", fontSize: 14, marginBottom: 12 }}>{error}</div>}
-        <button className="btn btn-accent" onClick={login} style={{ width: "100%" }}>Entrar</button>
+        <button className="btn btn-accent" onClick={login} disabled={loading} style={{ width: "100%" }}>{loading ? "Entrando…" : "Entrar"}</button>
       </div>
     );
   }

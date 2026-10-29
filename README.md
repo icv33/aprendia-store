@@ -97,7 +97,7 @@ El `vercel.json` ya incluye `prisma generate` en el build.
 
 ## Panel de administración
 
-Accede a `/admin` con la contraseña definida en `ADMIN_PASSWORD` (por defecto: `aprendia2025admin`).
+Accede a `/admin` con la contraseña definida en `ADMIN_PASSWORD`.
 
 Para gestionar ebooks con interfaz visual:
 
