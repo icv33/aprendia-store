@@ -1,78 +1,115 @@
-"use client";
-import type { Book } from "@/types";
+import type { Book, Motif } from "@/lib/books";
 
-interface CoverProps {
-  book: Book;
-  size?: "sm" | "md" | "lg";
-  hideTitle?: boolean;
-  overrideBg?: string;
+// Portada dibujada: dos tintas que se superponen (multiply), como una risografía.
+function MotifArt({ motif, ink, accent }: { motif: Motif; ink: string; accent: string }) {
+  switch (motif) {
+    case "orbits":
+      return (
+        <>
+          <g fill="none" stroke={ink} strokeWidth="7">
+            {[40, 75, 110, 145].map((r) => (
+              <circle key={r} cx="210" cy="300" r={r} />
+            ))}
+          </g>
+          <circle cx="120" cy="250" r="78" fill={accent} className="riso" />
+          <circle cx="210" cy="300" r="16" fill={ink} />
+        </>
+      );
+    case "stairs":
+      return (
+        <>
+          {[0, 1, 2, 3, 4].map((i) => (
+            <rect key={i} x={40 + i * 46} y={380 - (i + 1) * 40} width="46" height={(i + 1) * 40} fill={ink} />
+          ))}
+          <rect x="150" y="150" width="120" height="120" fill={accent} className="riso" transform="rotate(12 210 210)" />
+        </>
+      );
+    case "halftone":
+      return (
+        <>
+          {Array.from({ length: 9 }).map((_, row) =>
+            Array.from({ length: 7 }).map((_, col) => (
+              <circle
+                key={`${row}-${col}`}
+                cx={36 + col * 38}
+                cy={186 + row * 26}
+                r={2 + ((row + col) % 9) * 1.4}
+                fill={ink}
+              />
+            )),
+          )}
+          <rect x="30" y="230" width="150" height="150" rx="75" fill={accent} className="riso" />
+        </>
+      );
+    case "waves":
+      return (
+        <>
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <path
+              key={i}
+              d={`M -10 ${210 + i * 30} q 40 -26 80 0 t 80 0 t 80 0 t 80 0`}
+              fill="none"
+              stroke={ink}
+              strokeWidth="9"
+            />
+          ))}
+          <circle cx="230" cy="215" r="62" fill={accent} className="riso" />
+        </>
+      );
+    case "eclipse":
+      return (
+        <>
+          <circle cx="150" cy="290" r="105" fill={ink} />
+          <circle cx="196" cy="262" r="92" fill={accent} className="riso" />
+          <rect x="0" y="372" width="300" height="10" fill={ink} />
+        </>
+      );
+    case "spark":
+      return (
+        <>
+          <g stroke={ink} strokeWidth="6" strokeLinecap="round">
+            {Array.from({ length: 16 }).map((_, i) => {
+              const a = (i / 16) * Math.PI * 2;
+              const r1 = i % 2 ? 40 : 30;
+              const r2 = i % 2 ? 105 : 135;
+              return (
+                <line
+                  key={i}
+                  x1={150 + Math.cos(a) * r1}
+                  y1={285 + Math.sin(a) * r1}
+                  x2={150 + Math.cos(a) * r2}
+                  y2={285 + Math.sin(a) * r2}
+                />
+              );
+            })}
+          </g>
+          <circle cx="150" cy="285" r="34" fill={accent} className="riso" />
+        </>
+      );
+  }
 }
 
-export default function Cover({ book, size = "md", hideTitle = false, overrideBg }: CoverProps) {
-  const c = book.cover;
-  const bg = overrideBg || c.bg;
-  const titleSize =
-    size === "lg" ? "clamp(22px, 3vw, 34px)" : size === "sm" ? "10px" : "clamp(13px, 1.6vw, 20px)";
-  const monoSize = size === "lg" ? 11 : size === "sm" ? 6 : 9;
+function isDark(hex: string) {
+  const n = parseInt(hex.slice(1), 16);
+  const [r, g, b] = [n >> 16, (n >> 8) & 255, n & 255];
+  return 0.299 * r + 0.587 * g + 0.114 * b < 110;
+}
 
-  if (hideTitle) {
-    return (
-      <div className="cover" style={{ background: bg, color: c.ink }}>
-        <div style={{ position: "absolute", inset: "7%", border: "1px solid currentColor", opacity: 0.22, borderRadius: 1, pointerEvents: "none" }} />
-        <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.5em" }}>
-          <span style={{ fontFamily: "var(--mono)", fontSize: monoSize, letterSpacing: ".25em", opacity: 0.55, textTransform: "uppercase" }}>Editorial digital</span>
-          <h3 className="serif" style={{ fontStyle: "italic", fontWeight: 400, fontSize: "clamp(28px, 3.4vw, 44px)", letterSpacing: "-0.025em", margin: 0, lineHeight: 1, color: c.ink }}>
-            aprendia
-          </h3>
-          <span style={{ display: "inline-block", width: "32%", height: 1, background: "currentColor", opacity: 0.4, marginTop: 4 }} />
-        </div>
-      </div>
-    );
-  }
-
+export function Cover({ book }: { book: Book }) {
   return (
-    <div className="cover" style={{ background: bg, color: c.ink }}>
-      {c.motif === "tri" && (
-        <>
-          <div className="cover-band top">
-            <span className="cover-mono" style={{ fontSize: monoSize }}>APRENDIA</span>
-          </div>
-          <div className="cover-band bottom">
-            <span className="cover-mono" style={{ fontSize: monoSize }}>{book.cat.toUpperCase()}</span>
-          </div>
-        </>
-      )}
-      {c.motif === "spine" && (
-        <div style={{ position: "absolute", top: "8%", left: "12%", right: "12%", display: "flex", justifyContent: "center", fontFamily: "var(--mono)", fontSize: monoSize, letterSpacing: ".25em", opacity: 0.7 }}>
-          <span>APRENDIA</span>
-        </div>
-      )}
-      {c.motif === "rule" && (
-        <>
-          <div style={{ position: "absolute", left: "12%", right: "12%", top: "11%", height: 1, background: "currentColor", opacity: 0.35 }} />
-          <div style={{ position: "absolute", left: "12%", top: "14%", fontFamily: "var(--mono)", fontSize: monoSize, letterSpacing: ".25em", opacity: 0.6 }}>APRENDIA</div>
-        </>
-      )}
-      <div style={{
-        position: "absolute",
-        left: "12%", right: "12%",
-        top: c.motif === "tri" ? "30%" : "28%",
-        bottom: c.motif === "tri" ? "22%" : "14%",
-        display: "flex", flexDirection: "column", justifyContent: "center",
-      }}>
-        <h3 style={{
-          fontFamily: "var(--serif)",
-          fontWeight: 400,
-          fontStyle: c.motif === "rule" ? "normal" : "italic",
-          fontSize: titleSize,
-          letterSpacing: "-0.02em",
-          lineHeight: 1.05,
-          margin: 0,
-          color: c.ink,
-        }}>
-          {book.title}
-        </h3>
+    <div
+      className="cover"
+      data-dark={isDark(book.color) || undefined}
+      style={{ background: book.color, color: book.ink }}
+    >
+      <svg className="cover-art" viewBox="0 0 300 420" aria-hidden="true">
+        <MotifArt motif={book.motif} ink={book.ink} accent={book.accent} />
+      </svg>
+      <div className="cover-text">
+        <p className="cover-title">{book.title}</p>
+        <p className="cover-author">{book.author}</p>
       </div>
+      <span className="cover-imprint">aprendia</span>
     </div>
   );
 }

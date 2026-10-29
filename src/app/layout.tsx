@@ -1,33 +1,20 @@
 import type { Metadata } from "next";
+import { Hanken_Grotesk, Young_Serif } from "next/font/google";
 import "./globals.css";
-import Nav from "@/components/Nav";
-import Footer from "@/components/Footer";
-import Toast from "@/components/Toast";
-import CartHydration from "@/components/CartHydration";
+
+const serif = Young_Serif({ weight: "400", subsets: ["latin"], variable: "--font-serif" });
+const sans = Hanken_Grotesk({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "aprendia · Una editorial digital independiente",
-  description: "Ebooks de calidad editorial sobre IA, cocina, maternidad, desarrollo personal, negocios y salud. Conocimiento práctico, listo para aplicar hoy.",
-  keywords: ["ebooks", "editorial digital", "libros digitales", "aprendia"],
-  openGraph: {
-    title: "aprendia · Una editorial digital independiente",
-    description: "Ebooks de calidad editorial. Conocimiento práctico, listo para aplicar hoy.",
-    type: "website",
-  },
+  title: "Aprendia: guías de IA que se leen de una sentada",
+  description:
+    "Editorial de libros cortos y prácticos sobre inteligencia artificial. Proyecto de portafolio: libros, autores y pagos de demostración.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="es">
-      <body>
-        <Nav />
-        <main style={{ minHeight: "calc(100vh - 76px)", position: "relative", zIndex: 2 }}>
-          {children}
-        </main>
-        <Footer />
-        <Toast />
-        <CartHydration />
-      </body>
+    <html lang="es" className={`${serif.variable} ${sans.variable}`}>
+      <body>{children}</body>
     </html>
   );
 }

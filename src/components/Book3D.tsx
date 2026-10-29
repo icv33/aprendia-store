@@ -1,94 +1,129 @@
 "use client";
-import type { Book } from "@/types";
-import Cover from "./Cover";
 
-interface Book3DProps {
+import { useEffect, useRef } from "react";
+import type { Book } from "@/lib/books";
+import { Cover } from "./Cover";
+
+type Props = {
   book: Book;
-  width?: number;
-  height?: number;
-  spinSeconds?: number;
-  overrideBg?: string;
-  hideTitle?: boolean;
-}
+  /** Gira solo, despacio (se para con «Reducir movimiento») */
+  autoSpin?: boolean;
+  /** Cambia este número para darle un giro completo (p. ej. al cambiar de libro) */
+  spinKey?: string | number;
+  className?: string;
+};
 
-export default function Book3D({ book, width = 260, height = 380, spinSeconds = 18, overrideBg, hideTitle = false }: Book3DProps) {
-  const depth = 30;
-  const w = width;
-  const h = height;
-  const c = book.cover;
-  const backBg = overrideBg || c.bg;
+const IDLE_SPEED = 14; // grados por segundo
+const REST_ANGLE = -28;
 
-  const faceBase: React.CSSProperties = {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    backfaceVisibility: "hidden",
+/**
+ * Libro en 3D con CSS: portada, contraportada, lomo y cantos de páginas.
+ * Se arrastra con el dedo o el ratón y tiene inercia; el giro se escribe
+ * directamente en el estilo (sin re-render en cada fotograma).
+ */
+export function Book3D({ book, autoSpin = false, spinKey, className }: Props) {
+  const bookRef = useRef<HTMLDivElement>(null);
+  const state = useRef({ angle: REST_ANGLE, velocity: 0, dragging: false, lastX: 0, lastT: 0 });
+  const reduced = useRef(false);
+  const firstKey = useRef(true);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    reduced.current = mq.matches;
+    const onChange = () => (reduced.current = mq.matches);
+    mq.addEventListener("change", onChange);
+
+    let frame = 0;
+    let prev = performance.now();
+    const tick = (now: number) => {
+      const dt = Math.min((now - prev) / 1000, 0.05);
+      prev = now;
+      const s = state.current;
+      if (!s.dragging) {
+        const target = autoSpin && !reduced.current ? IDLE_SPEED : 0;
+        // La velocidad vuelve poco a poco a la de reposo (inercia)
+        s.velocity += (target - s.velocity) * Math.min(dt * 1.6, 1);
+        s.angle += s.velocity * dt;
+        if (!autoSpin || reduced.current) {
+          // Sin giro automático, vuelve suave a mostrar la portada en tres cuartos
+          const rest = REST_ANGLE + Math.round((s.angle - REST_ANGLE) / 360) * 360;
+          if (Math.abs(s.velocity) < 30) s.angle += (rest - s.angle) * Math.min(dt * 3, 1);
+        }
+      }
+      if (bookRef.current) {
+        bookRef.current.style.transform = `rotateX(-9deg) rotateY(${s.angle}deg)`;
+      }
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => {
+      cancelAnimationFrame(frame);
+      mq.removeEventListener("change", onChange);
+    };
+  }, [autoSpin]);
+
+  // Giro al cambiar de libro
+  useEffect(() => {
+    if (firstKey.current) {
+      firstKey.current = false;
+      return;
+    }
+    if (!reduced.current) state.current.velocity = 720;
+  }, [spinKey]);
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    Object.assign(state.current, { dragging: true, lastX: e.clientX, lastT: performance.now(), velocity: 0 });
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    const s = state.current;
+    if (!s.dragging) return;
+    const now = performance.now();
+    const dx = e.clientX - s.lastX;
+    s.angle += dx * 0.6;
+    s.velocity = (dx * 0.6) / Math.max((now - s.lastT) / 1000, 0.008);
+    s.lastX = e.clientX;
+    s.lastT = now;
+  };
+  const onPointerUp = () => {
+    state.current.dragging = false;
+  };
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowLeft") state.current.velocity -= 240;
+    if (e.key === "ArrowRight") state.current.velocity += 240;
   };
 
-  const pagesBg = "repeating-linear-gradient(180deg, #f3ecd9 0 1px, #ddd1ac 1px 2px)";
-
   return (
-    <div className="book-3d-stage" style={{ width: w, height: h }}>
-      <div className="book-3d-float">
-        <div
-          className="book-3d"
-          style={{
-            ["--book-w" as string]: w + "px",
-            ["--book-h" as string]: h + "px",
-            ["--book-spin" as string]: spinSeconds + "s",
-          }}
-        >
-          {/* FRONT */}
-          <div style={{ ...faceBase, width: w, height: h, marginLeft: -w / 2, marginTop: -h / 2, transform: `translateZ(${depth / 2}px)` }}>
-            <Cover book={book} size="lg" overrideBg={overrideBg} hideTitle={hideTitle} />
-          </div>
-          {/* BACK */}
-          <div style={{
-            ...faceBase, width: w, height: h,
-            marginLeft: -w / 2, marginTop: -h / 2,
-            transform: `rotateY(180deg) translateZ(${depth / 2}px)`,
-            background: backBg, borderRadius: "4px 2px 2px 4px",
-            display: "flex", alignItems: "flex-end", justifyContent: "center",
-            padding: 24, color: c.ink, fontFamily: "var(--mono)", fontSize: 10,
-            letterSpacing: ".18em", textTransform: "uppercase",
-          }}>
-            APRENDIA · {book.year}
-          </div>
-          {/* RIGHT (fore-edge) */}
-          <div style={{
-            ...faceBase, width: depth, height: h,
-            marginLeft: -depth / 2, marginTop: -h / 2,
-            transform: `rotateY(90deg) translateZ(${w / 2}px)`,
-            background: pagesBg,
-          }} />
-          {/* LEFT (spine) */}
-          <div style={{
-            ...faceBase, width: depth, height: h,
-            marginLeft: -depth / 2, marginTop: -h / 2,
-            transform: `rotateY(-90deg) translateZ(${w / 2}px)`,
-            background: backBg, display: "flex", alignItems: "center", justifyContent: "center",
-            color: c.ink,
-            boxShadow: "inset 2px 0 4px rgba(0,0,0,.18), inset -2px 0 4px rgba(0,0,0,.18)",
-          }}>
-            <span style={{ writingMode: "vertical-rl", transform: "rotate(180deg)", fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 13, letterSpacing: ".05em" }}>
-              aprendia
-            </span>
-          </div>
-          {/* TOP */}
-          <div style={{
-            ...faceBase, width: w, height: depth,
-            marginLeft: -w / 2, marginTop: -depth / 2,
-            transform: `rotateX(90deg) translateZ(${h / 2}px)`,
-            background: pagesBg,
-          }} />
-          {/* BOTTOM */}
-          <div style={{
-            ...faceBase, width: w, height: depth,
-            marginLeft: -w / 2, marginTop: -depth / 2,
-            transform: `rotateX(-90deg) translateZ(${h / 2}px)`,
-            background: pagesBg,
-          }} />
+    <div
+      className={`book3d ${className ?? ""}`}
+      role="img"
+      aria-label={`Libro «${book.title}», de ${book.author}. Arrástralo o usa las flechas para girarlo.`}
+      tabIndex={0}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+      onKeyDown={onKeyDown}
+      style={{ "--spine": book.color, "--spine-ink": book.ink } as React.CSSProperties}
+    >
+      <div className="book" ref={bookRef}>
+        <div className="face front">
+          <Cover book={book} />
         </div>
+        <div className="face back" style={{ background: book.color, color: book.ink }}>
+          <p className="back-hook">{book.hook}</p>
+          <p className="back-meta">
+            {book.pages} páginas
+            <br />
+            Aprendia, 2026
+          </p>
+        </div>
+        <div className="face spine">
+          <span>{book.title}</span>
+        </div>
+        <div className="face pages-right" />
+        <div className="face pages-top" />
+        <div className="face pages-bottom" />
       </div>
       <div className="book-shadow" />
     </div>
