@@ -2,6 +2,8 @@
 
 Tienda de una editorial inventada de guías de inteligencia artificial. Proyecto de portafolio: **los libros, los autores y los pagos son de demostración** (no se pide ninguna tarjeta ni se cobra nada).
 
+**Verla en vivo: [aprendia-store.vercel.app](https://aprendia-store.vercel.app)**
+
 ## Qué tiene
 
 - **Libro en 3D hecho solo con CSS**: portada, lomo, contraportada y cantos de páginas. Gira solo, se arrastra con el ratón o el dedo (con inercia) y responde a las flechas del teclado. El giro se escribe directamente en el estilo con `requestAnimationFrame`, sin volver a renderizar React en cada fotograma.
