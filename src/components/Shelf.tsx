@@ -50,7 +50,7 @@ export function Shelf() {
           <p className="facts">
             {book.pages} páginas, {formatPrice(book.price)}
           </p>
-          <Link className="btn btn-ultra" href={`/libros/${book.slug}`}>
+          <Link className="btn btn-dark" href={`/libros/${book.slug}`}>
             Ver el libro
           </Link>
         </div>

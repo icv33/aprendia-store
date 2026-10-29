@@ -26,16 +26,19 @@ export default async function BookPage({ params }: { params: Promise<{ slug: str
 
   return (
     <>
-      <div className="book-band" style={{ "--bg": book.color, "--ink": book.ink } as React.CSSProperties}>
+      <div className="book-band">
         <Topbar />
         <section className="book-hero">
-          <Book3D book={book} className="detail-book" />
+          <div className="detail-stage">
+            <div className="stage-disc" style={{ background: book.accent }} aria-hidden="true" />
+            <Book3D book={book} className="detail-book" />
+          </div>
           <div className="book-hero-copy">
             <h1>{book.title}</h1>
             <p className="book-sub">{book.subtitle}</p>
             <p className="book-by">de {book.author}</p>
             <div className="buy-row">
-              <Link className="btn btn-ink" href={`/comprar/${book.slug}`}>
+              <Link className="btn btn-sand" href={`/comprar/${book.slug}`}>
                 Comprar por {formatPrice(book.price)}
               </Link>
               <a className="btn btn-line" href="#muestra">

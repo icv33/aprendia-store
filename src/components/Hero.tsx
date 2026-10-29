@@ -18,7 +18,7 @@ export function Hero() {
           jerga, con ejemplos que puedes copiar.
         </p>
         <div className="hero-actions">
-          <Link className="btn btn-sun" href={`/libros/${book.slug}`}>
+          <Link className="btn btn-sand" href={`/libros/${book.slug}`}>
             Ver «{book.title}»
           </Link>
           <Link className="btn btn-line" href="#estanteria">

@@ -25,7 +25,7 @@ export function Book3D({ book, autoSpin = false, spinKey, className }: Props) {
   const bookRef = useRef<HTMLDivElement>(null);
   const state = useRef({ angle: REST_ANGLE, velocity: 0, dragging: false, lastX: 0, lastT: 0 });
   const reduced = useRef(false);
-  const firstKey = useRef(true);
+  const prevKey = useRef(spinKey);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -62,12 +62,10 @@ export function Book3D({ book, autoSpin = false, spinKey, className }: Props) {
     };
   }, [autoSpin]);
 
-  // Giro al cambiar de libro
+  // Giro al cambiar de libro (solo si la clave cambia de verdad)
   useEffect(() => {
-    if (firstKey.current) {
-      firstKey.current = false;
-      return;
-    }
+    if (prevKey.current === spinKey) return;
+    prevKey.current = spinKey;
     if (!reduced.current) state.current.velocity = 720;
   }, [spinKey]);
 

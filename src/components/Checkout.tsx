@@ -29,7 +29,7 @@ export function Checkout({ book }: { book: Book }) {
               ha cobrado nada ni se ha enviado ningún correo.
             </p>
             <div className="buy-row">
-              <Link className="btn btn-sun" href={`/libros/${book.slug}#muestra`}>
+              <Link className="btn btn-sand" href={`/libros/${book.slug}#muestra`}>
                 Leer el fragmento
               </Link>
               <Link className="btn btn-line" href="/#estanteria">
@@ -57,7 +57,7 @@ export function Checkout({ book }: { book: Book }) {
             <p className="demo-banner">
               Esta tienda es una demostración. Al pagar no se te pide ninguna tarjeta ni se cobra nada.
             </p>
-            <button type="button" className="btn btn-sun btn-wide" onClick={pay} disabled={step === "paying"}>
+            <button type="button" className="btn btn-sand btn-wide" onClick={pay} disabled={step === "paying"}>
               {step === "paying" ? "Pagando…" : `Pagar ${formatPrice(book.price)} (demo)`}
             </button>
             <Link className="back-link" href={`/libros/${book.slug}`}>
