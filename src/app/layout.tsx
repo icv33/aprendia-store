@@ -6,6 +6,8 @@ const serif = Young_Serif({ weight: "400", subsets: ["latin"], variable: "--font
 const sans = Hanken_Grotesk({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
+  // Dirección completa de las imágenes al compartir (LinkedIn, WhatsApp…). La de Vercel no caduca.
+  metadataBase: new URL("https://aprendia-store.vercel.app"),
   title: "Aprendia: guías de IA que se leen de una sentada",
   description:
     "Editorial de libros cortos y prácticos sobre inteligencia artificial. Proyecto de portafolio: libros, autores y pagos de demostración.",
